@@ -5,8 +5,15 @@ import os
 def main():
     prev_dir = None
     while True:
+        cwd = os.getcwd()
+        home = os.path.expanduser("~")
+        if cwd==home:
+            cwd = "~"
+        elif cwd.startswith(home + os.sep):
+             cwd = "~" + cwd[len(home):]
+        prompt = "myshell:" + cwd + "$ "
         try:
-            user_input = input("myshell> ")
+            user_input = input(prompt)
         except EOFError:
             print()
             break
