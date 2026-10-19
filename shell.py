@@ -63,17 +63,13 @@ def main():
             try:
                 os.chdir(target)
                 prev_dir = current_dir
-                print("Current working directory:", os.getcwd())
             except FileNotFoundError:
                 print("cd: no such file or directory: " + target)
             except NotADirectoryError:
                 print("cd: not a directory: " + target)
             except PermissionError:
                 print("cd: permission denied: " + target)
-                
-        print("Command:", command)
-        print("Arguments:", args)
-        
+
 
 if __name__ == "__main__":
     main()
