@@ -1,17 +1,26 @@
 import shlex
 import sys
 import os
+import subprocess
 
 def main():
     prev_dir = None
+    last_status = 0
     while True:
-        cwd = os.getcwd()
+        try:
+            cwd = os.getcwd()
+        except FileNotFoundError:
+            print("myshell: current directory has been deleted; defaulting to /")
+            os.chdir("/")
+            cwd = "/"
+
         home = os.path.expanduser("~")
-        if cwd==home:
+        if cwd == home:
             cwd = "~"
         elif cwd.startswith(home + os.sep):
-             cwd = "~" + cwd[len(home):]
+            cwd = "~" + cwd[len(home):]
         prompt = "myshell:" + cwd + "$ "
+        
         try:
             user_input = input(prompt)
         except EOFError:
@@ -50,6 +59,7 @@ def main():
         elif command == "cd":
             if len(args) > 1:
                 print("cd: too many arguments")
+                last_status = 1
                 continue
                 
             if len(args) == 0:
@@ -60,6 +70,7 @@ def main():
             if target == "-":
                 if prev_dir is None:
                     print("cd: OLDPWD not set")
+                    last_status = 1
                     continue
                 target = prev_dir
                 print(target)
@@ -70,12 +81,30 @@ def main():
             try:
                 os.chdir(target)
                 prev_dir = current_dir
+                last_status = 0
             except FileNotFoundError:
                 print("cd: no such file or directory: " + target)
+                last_status = 1
             except NotADirectoryError:
                 print("cd: not a directory: " + target)
+                last_status = 1
             except PermissionError:
                 print("cd: permission denied: " + target)
+                last_status = 1
+                
+        else:
+            try:
+                result = subprocess.run(tokens)
+                last_status = result.returncode
+            except FileNotFoundError:
+                print("myshell: command not found: " + command)
+                last_status = 127
+            except PermissionError:
+                print("myshell: permission denied: " + command)
+                last_status = 126
+            except KeyboardInterrupt:
+                print()  
+                last_status = 130
 
 
 if __name__ == "__main__":
